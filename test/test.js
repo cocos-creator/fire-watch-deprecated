@@ -3,7 +3,7 @@ var Fs = require('fire-fs');
 var Path = require('fire-path');
 
 function reset () {
-    Fs.delSync("./test/foobar/");
+    Fs.rimrafSync("./test/foobar/");
     Fs.copySync("./test/test-data/", "./test/foobar");
 }
 
@@ -75,8 +75,8 @@ describe('FireWatch Simple Case', function () {
         reset();
 
         var watcher = FireWatch.start( root, function () {
-            Fs.delSync(Path.join(root, "foo/foobar.js"));
-            Fs.delSync(Path.join(root, "foo/foo-01/foobar.js"));
+            Fs.rimrafSync(Path.join(root, "foo/foobar.js"));
+            Fs.rimrafSync(Path.join(root, "foo/foo-01/foobar.js"));
         });
         watcher.stop( function () { done(); } );
         watcher.on( "changed", function ( results ) {
@@ -97,8 +97,8 @@ describe('FireWatch Simple Case', function () {
         reset();
 
         var watcher = FireWatch.start( root, function () {
-            Fs.delSync(Path.join(root, "foo/foo-01"));
-            Fs.delSync(Path.join(root, "bar"));
+            Fs.rimrafSync(Path.join(root, "foo/foo-01"));
+            Fs.rimrafSync(Path.join(root, "bar"));
         });
         watcher.stop( function () { done(); } );
         watcher.on( "changed", function ( results ) {
@@ -207,7 +207,7 @@ describe('FireWatch Compound Case', function () {
 
         var watcher = FireWatch.start( root, function () {
             Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
-            Fs.delSync(Path.join(root, "foo/foobar.js"));
+            Fs.rimrafSync(Path.join(root, "foo/foobar.js"));
 
             Fs.writeFileSync(Path.join(root,"foo/foo-02/foobar.js"), "Hello World!");
             Fs.writeFileSync(Path.join(root,"bar/bar-01/foobar-new.js"), "Hello World!");
@@ -215,8 +215,8 @@ describe('FireWatch Compound Case', function () {
             Fs.renameSync( Path.join(root, "foo/foo-03/foobar.js"),
                            Path.join(root, "bar/bar-03/foobar-rename.js") );
 
-            Fs.delSync(Path.join(root, "foo/foo-01/foobar.js"));
-            Fs.delSync(Path.join(root, "bar/bar-03/foobar-rename.js"));
+            Fs.rimrafSync(Path.join(root, "foo/foo-01/foobar.js"));
+            Fs.rimrafSync(Path.join(root, "bar/bar-03/foobar-rename.js"));
         });
         watcher.stop( function () { done(); } );
         watcher.on( "changed", function ( results ) {
@@ -240,8 +240,8 @@ describe('FireWatch Compound Case', function () {
         reset();
 
         var watcher = FireWatch.start( root, function () {
-            Fs.delSync(Path.join(root, "foo/foo-01"));
-            Fs.delSync(Path.join(root, "bar"));
+            Fs.rimrafSync(Path.join(root, "foo/foo-01"));
+            Fs.rimrafSync(Path.join(root, "bar"));
 
             Fs.renameSync(Path.join(root, "foo"), Path.join(root, "bar-new") );
 
