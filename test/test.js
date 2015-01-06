@@ -22,6 +22,7 @@ function mapResults ( results ) {
     });
 }
 
+reset();
 var root = Fs.realpathSync("./test/foobar/");
 
 describe('FireWatch Simple Case', function () {
