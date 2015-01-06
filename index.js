@@ -6,6 +6,35 @@ var EventStream = require ('event-stream');
 var Util = require ('util');
 var Events = require ('events');
 
+var commandPriority = { delete: 0, new: 1, change: 2 };
+
+function _dbgPrintResults ( results ) {
+    for ( var p in results ) {
+        console.log( "%s: %s", results[p].command, results[p].path );
+    }
+}
+
+function _addResult ( results, command, path, isDirectory ) {
+    var result = results[path];
+    if ( result ) {
+        if ( result.isDirectory !== isDirectory ) {
+            throw new Error("We not support file and directory share the same path " + path );
+        }
+
+        if ( commandPriority[result.command] > commandPriority[command] ) {
+            result.command = command;
+        }
+
+        return;
+    }
+
+    results[path] = {
+        command: command,
+        path: path,
+        isDirectory: isDirectory
+    };
+}
+
 function _watch ( watcher ) {
     return EventStream.through(function (file) {
         var parent = watcher.files[Path.dirname(file.path)];
@@ -71,7 +100,7 @@ function _computeResults ( files, changes ) {
         var fileInfo = files[info.path];
 
         if ( !fileInfo ) {
-            results.push( { command: 'new', path: info.path } );
+            _addResult( results, 'new', info.path, Fs.statSync(info.path).isDirectory() );
             continue;
         }
 
@@ -85,7 +114,7 @@ function _computeResults ( files, changes ) {
             var sameFiles = [];
             var oldLen = oldFiles.length;
             var newLen = newFiles.length;
-            var j, jj, path, stat;
+            var j, jj, path, stat, stat2;
 
             for ( j = 0; j < newLen; ++j ) {
                 for ( jj = 0; jj < oldLen; ++jj ) {
@@ -108,37 +137,70 @@ function _computeResults ( files, changes ) {
 
             for ( j = 0; j < newLen; ++j ) {
                 path = newFiles[j];
-                results[path] = { command: "new", path: path };
+                stat = Fs.statSync(path);
+                _addResult( results, 'new', path, stat.isDirectory() );
             }
 
             for ( j = 0; j < oldLen; ++j ) {
                 path = oldFiles[j];
-                results[path] = { command: "delete", path: path };
+                stat = files[path].file.stat;
+                _addResult( results, 'delete', path, stat.isDirectory() );
             }
 
             for ( j = 0; j < sameFiles.length; ++j ) {
                 path = sameFiles[j];
-                stat = Fs.statSync(path);
-                if ( files[path].file.stat.mtime.getTime() !== stat.mtime.getTime() ) {
-                    results[path] = { command: "change", path: path };
+                stat = files[path].file.stat;
+                stat2 = Fs.statSync(path);
+                if ( stat.isFile() && stat.mtime.getTime() !== stat2.mtime.getTime() ) {
+                    _addResult( results, 'change', path, false );
                 }
             }
         }
         else {
             if ( info.command === "change" ) {
-                results[info.path] = { command: "change", path: info.path };
+                _addResult( results, 'change', info.path, false );
             }
             else if ( info.command === "rename" ) {
-                results[info.path] = { command: "delete", path: info.path };
-                results[info.relatedPath] = { command: "new", path: info.relatedPath };
+                _addResult( results, 'delete', info.path, false );
+                _addResult( results, 'new', info.relatedPath, false );
             }
             else if ( info.command === "delete" ) {
-                results[info.path] = { command: "delete", path: info.path };
+                _addResult( results, 'delete', info.path, false );
             }
         }
     }
 
-    return results;
+    var resultList = [];
+    for ( var p in results ) {
+        resultList.push(results[p]);
+    }
+    resultList.sort( function ( a, b ) {
+        var compareCommand = commandPriority[a.command] - commandPriority[b.command];
+        if ( compareCommand !== 0 ) {
+            return compareCommand;
+        }
+
+        return a.path.localeCompare(b.path);
+    } );
+
+    var lastDirectory = null;
+    resultList = resultList.filter( function ( r ) {
+        if ( lastDirectory &&
+             lastDirectory.command === r.command &&
+             Path.contains( lastDirectory.path, r.path ) )
+        {
+            return false;
+        }
+
+        if ( r.isDirectory ) {
+            lastDirectory = r;
+        }
+        else {
+            lastDirectory = null;
+        }
+        return true;
+    } );
+    return resultList;
 }
 
 function FireWatch () {
