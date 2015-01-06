@@ -7,6 +7,7 @@ var Util = require ('util');
 var Events = require ('events');
 
 var commandPriority = { delete: 0, new: 1, change: 2 };
+var globalDiff = process.platform === 'win32';
 
 function _dbgPrintResults ( results ) {
     for ( var p in results ) {
@@ -35,43 +36,58 @@ function _addResult ( results, command, path, isDirectory ) {
     };
 }
 
-function _watch ( watcher ) {
+function _watch ( fireWatcher ) {
+    if ( globalDiff ) {
+        return EventStream.through(function (file) {
+            var parent = fireWatcher.files[Path.dirname(file.path)];
+            parent.children.push( file.path );
+
+            fireWatcher.files[file.path] = { file: file, children: [] };
+            if ( file.stat.isDirectory() ) {
+                fireWatcher.changes[file.path] = { command: "change", path: file.path };
+            }
+        });
+    }
+
     return EventStream.through(function (file) {
-        var parent = watcher.files[Path.dirname(file.path)];
+        var parent = fireWatcher.files[Path.dirname(file.path)];
         parent.children.push( file.path );
 
-        watcher.files[file.path] = { file: file, children: [] };
-        PathWatcher.watch( file.path, function ( event, path ) {
+        fireWatcher.files[file.path] = { file: file, children: [] };
+        var pathWatcher = PathWatcher.watch( file.path, function ( event, path ) {
             // console.log("DEBUG: %s, %s, %s", event, file.path, path);
 
-            watcher.changes[file.path] = { command: event, path: file.path, relatedPath: path };
-            // TODO: _cooldown(watcher);
+            if ( event === "delete" ) {
+                pathWatcher.close();
+            }
+            fireWatcher.changes[file.path] = { command: event, path: file.path, relatedPath: path };
+            // TODO: _cooldown(fireWatcher);
         } );
     });
 }
 
-function _cooldown ( watcher ) {
-    clearTimeout(watcher.timer);
-    watcher.timer = setTimeout(function () {
-        _flush(watcher);
+function _cooldown ( fireWatcher ) {
+    clearTimeout(fireWatcher.timer);
+    fireWatcher.timer = setTimeout(function () {
+        _flush(fireWatcher);
     }, 500);
 }
 
-function _flush ( watcher ) {
+function _flush ( fireWatcher ) {
     var sortedChanges = [];
-    for ( var k in watcher.changes ) {
-        sortedChanges.push(watcher.changes[k]);
+    for ( var k in fireWatcher.changes ) {
+        sortedChanges.push(fireWatcher.changes[k]);
     }
-    watcher.changes = {};
+    fireWatcher.changes = {};
 
     //
     sortedChanges.sort( function ( a, b ) {
         return a.path.localeCompare(b.path);
     });
-    var results = _computeResults( watcher.files, sortedChanges );
+    var results = _computeResults( fireWatcher.files, sortedChanges );
 
     //
-    watcher.emit( 'changed', results );
+    fireWatcher.emit( 'changed', results );
 
 }
 
@@ -228,11 +244,11 @@ FireWatch.prototype.stop = function ( cb ) {
 
 FireWatch.start = function ( root, cb ) {
     root = Path.normalize(root);
-    var watcher = new FireWatch();
-    watcher.files[Path.dirname(root)] = { file: null, children: [] };
+    var fireWatcher = new FireWatch();
+    fireWatcher.files[Path.dirname(root)] = { file: null, children: [] };
 
     Gulp.src( [root, Path.join(root,"**/*")], { cwd: root, base: root, read: false } )
-        .pipe ( _watch(watcher) ).on( "end", function () {
+        .pipe ( _watch(fireWatcher) ).on( "end", function () {
             if ( cb ) cb ();
 
             // DEBUG
@@ -240,7 +256,7 @@ FireWatch.start = function ( root, cb ) {
         })
         ;
 
-    return watcher;
+    return fireWatcher;
 };
 
 module.exports = FireWatch;
