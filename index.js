@@ -227,6 +227,7 @@ FireWatch.prototype.stop = function ( cb ) {
 };
 
 FireWatch.start = function ( root, cb ) {
+    root = Path.normalize(root);
     var watcher = new FireWatch();
     watcher.files[Path.dirname(root)] = { file: null, children: [] };
 
