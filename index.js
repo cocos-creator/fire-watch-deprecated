@@ -39,21 +39,25 @@ function _addResult ( results, command, path, isDirectory ) {
 function _watch ( fireWatcher ) {
     if ( globalDiff ) {
         return EventStream.through(function (file) {
+            fireWatcher.files[file.path] = { file: file, children: [] };
+
             var parent = fireWatcher.files[Path.dirname(file.path)];
             parent.children.push( file.path );
 
-            fireWatcher.files[file.path] = { file: file, children: [] };
             if ( file.stat.isDirectory() ) {
                 fireWatcher.changes[file.path] = { command: "change", path: file.path };
             }
+
+            this.push(file);
         });
     }
 
     return EventStream.through(function (file) {
+        fireWatcher.files[file.path] = { file: file, children: [] };
+
         var parent = fireWatcher.files[Path.dirname(file.path)];
         parent.children.push( file.path );
 
-        fireWatcher.files[file.path] = { file: file, children: [] };
         var pathWatcher = PathWatcher.watch( file.path, function ( event, path ) {
             // console.log("DEBUG: %s, %s, %s", event, file.path, path);
 
@@ -63,6 +67,8 @@ function _watch ( fireWatcher ) {
             fireWatcher.changes[file.path] = { command: event, path: file.path, relatedPath: path };
             // TODO: _cooldown(fireWatcher);
         } );
+
+        this.push(file);
     });
 }
 
