@@ -36,3 +36,4 @@ bower_components/
 bin/
 ext/
 test/foobar/
+test/foobar-trash/
