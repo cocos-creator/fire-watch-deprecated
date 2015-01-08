@@ -184,7 +184,9 @@ function _computeResults ( files, changes ) {
             }
             else if ( info.command === "rename" ) {
                 _addResult( results, 'delete', info.path, false );
-                _addResult( results, 'new', info.relatedPath, false );
+                if ( Path.contains( file.base, info.relatedPath ) ) {
+                    _addResult( results, 'new', info.relatedPath, false );
+                }
             }
             else if ( info.command === "delete" ) {
                 _addResult( results, 'delete', info.path, false );

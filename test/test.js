@@ -5,6 +5,9 @@ var Path = require('fire-path');
 function reset () {
     Fs.rimrafSync("./test/foobar/");
     Fs.copySync("./test/test-data/", "./test/foobar");
+
+    Fs.rimrafSync("./test/foobar-trash/");
+    Fs.mkdirSync("./test/foobar-trash/");
 }
 
 function printResults ( results ) {
@@ -199,6 +202,34 @@ describe('FireWatch Simple Case', function () {
                 { command: "new", path: "bar/bar-01/foobar-new.js", isDirectory: false },
                 { command: "change", path: "foo/foo-02/foobar.js", isDirectory: false },
                 { command: "change", path: "foo/foobar.js", isDirectory: false },
+            ];
+            expectResults = mapResults(expectResults);
+
+            results.should.eql(expectResults);
+        });
+    });
+
+    it('should work for move file out side root', function ( done ) {
+        this.timeout(10000);
+        reset();
+
+        var watcher = FireWatch.start( root, function () {
+            var root2 = Fs.realpathSync("./test/foobar-trash/");
+            Fs.renameSync( Path.join(root, "foo/foobar.js"),
+                           Path.join(root2, "foobar.js") );
+
+            Fs.renameSync( Path.join(root, "bar/foobar.js"),
+                           Path.join(root2, "bar-foobar.js") );
+            Fs.renameSync( Path.join(root2, "bar-foobar.js"),
+                           Path.join(root, "bar/foobar.js") );
+
+            watcher.stop( function () { done(); } );
+        });
+        watcher.on( "changed", function ( results ) {
+            printResults(results);
+
+            var expectResults = [
+                { command: "delete", path: "foo/foobar.js", isDirectory: false },
             ];
             expectResults = mapResults(expectResults);
 
