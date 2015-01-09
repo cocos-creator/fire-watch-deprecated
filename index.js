@@ -219,9 +219,6 @@ function _computeResults ( files, changes ) {
         if ( r.isDirectory ) {
             lastDirectory = r;
         }
-        else {
-            lastDirectory = null;
-        }
         return true;
     } );
     return resultList;
