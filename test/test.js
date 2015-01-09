@@ -259,6 +259,29 @@ describe('FireWatch Simple Case', function () {
             results.should.eql(expectResults);
         });
     });
+
+    it('should work for delete folder and meta', function ( done ) {
+        this.timeout(10000);
+        reset();
+
+        var watcher = FireWatch.start( root, function () {
+            Fs.rimrafSync( Path.join(root, "foo-bar") );
+            Fs.rimrafSync( Path.join(root, "foo-bar.meta") );
+
+            watcher.stop( function () { done(); } );
+        });
+        watcher.on( "changed", function ( results ) {
+            printResults(results);
+
+            var expectResults = [
+                { command: "delete", path: "foo-bar", isDirectory: true },
+                { command: "delete", path: "foo-bar.meta", isDirectory: false },
+            ];
+            expectResults = mapResults(expectResults);
+
+            results.should.eql(expectResults);
+        });
+    });
 });
 
 describe('FireWatch Compound Case', function () {
