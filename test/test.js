@@ -29,9 +29,12 @@ reset();
 var root = Fs.realpathSync("./test/foobar/");
 
 describe('FireWatch Simple Case', function () {
+    beforeEach(function () {
+        reset();
+    });
+
     it('should work for new file', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start(root, function () {
             Fs.writeFileSync(Path.join(root, "foo/foo-01/foobar-new.js"), "Hello World!");
@@ -54,7 +57,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for new folder', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.mkdirSync(Path.join(root, "foo/foo-01-new"));
@@ -77,7 +79,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete file', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.rimrafSync(Path.join(root, "foo/foobar.js"));
@@ -100,7 +101,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete folder', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.rimrafSync(Path.join(root, "foo/foo-01"));
@@ -123,7 +123,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for rename file', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.renameSync( Path.join(root, "foo/foobar.js"),
@@ -160,7 +159,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for rename folder', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.renameSync( Path.join(root, "foo/foo-01"),
@@ -186,7 +184,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for editing file', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
@@ -211,7 +208,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for move file out side root', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             var root2 = Fs.realpathSync("./test/foobar-trash/");
@@ -239,7 +235,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete file and meta', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.rimrafSync( Path.join(root, "foobar.js") );
@@ -262,7 +257,6 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete folder and meta', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.rimrafSync( Path.join(root, "foo-bar") );
@@ -285,9 +279,12 @@ describe('FireWatch Simple Case', function () {
 });
 
 describe('FireWatch Compound Case', function () {
+    beforeEach(function () {
+        reset();
+    });
+
     it('should work for rename, new, delete, editing files', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
@@ -322,7 +319,6 @@ describe('FireWatch Compound Case', function () {
 
     it('should work for rename, new, delete folders', function ( done ) {
         this.timeout(10000);
-        reset();
 
         var watcher = FireWatch.start( root, function () {
             Fs.rimrafSync(Path.join(root, "foo/foo-01"));
