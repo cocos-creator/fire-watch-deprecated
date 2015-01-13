@@ -233,6 +233,27 @@ describe('FireWatch Simple Case', function () {
         });
     });
 
+    it('should work for delete and copy into the same file', function ( done ) {
+        this.timeout(10000);
+
+        var watcher = FireWatch.start( root, function () {
+            Fs.rimrafSync( Path.join(root, "foobar.js") );
+            Fs.copySync(Path.join(root, "foobar.js.meta"), Path.join(root, "foobar.js"));
+
+            watcher.stop( function () { done(); } );
+        });
+        watcher.on( "changed", function ( results ) {
+            printResults(results);
+
+            var expectResults = [
+                { command: "change", path: "foobar.js", isDirectory: false },
+            ];
+            expectResults = mapResults(expectResults);
+
+            results.should.eql(expectResults);
+        });
+    });
+
     it('should work for delete file and meta', function ( done ) {
         this.timeout(10000);
 

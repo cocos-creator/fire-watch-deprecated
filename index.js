@@ -128,6 +128,7 @@ function _computeResults ( files, changes ) {
 
         // get file
         var file = fileInfo.file;
+        var path, stat, stat2;
 
         // if changed file is folder
         if ( file.stat.isDirectory() ) {
@@ -136,7 +137,7 @@ function _computeResults ( files, changes ) {
             var sameFiles = [];
             var oldLen = oldFiles.length;
             var newLen = newFiles.length;
-            var j, jj, path, stat, stat2;
+            var j, jj;
 
             for ( j = 0; j < newLen; ++j ) {
                 for ( jj = 0; jj < oldLen; ++jj ) {
@@ -183,13 +184,24 @@ function _computeResults ( files, changes ) {
                 _addResult( results, 'change', info.path, false );
             }
             else if ( info.command === "rename" ) {
-                _addResult( results, 'delete', info.path, false );
+                if ( !Fs.existsSync(info.path) ) {
+                    _addResult( results, 'delete', info.path, false );
+                }
+                else {
+                    _addResult( results, 'change', info.path, false );
+                }
+
                 if ( Path.contains( file.base, info.relatedPath ) ) {
                     _addResult( results, 'new', info.relatedPath, false );
                 }
             }
             else if ( info.command === "delete" ) {
-                _addResult( results, 'delete', info.path, false );
+                if ( !Fs.existsSync(info.path) ) {
+                    _addResult( results, 'delete', info.path, false );
+                }
+                else {
+                    _addResult( results, 'change', info.path, false );
+                }
             }
         }
     }
