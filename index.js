@@ -56,6 +56,11 @@ function _watch ( fireWatcher ) {
         fireWatcher.files[file.path] = { file: file, children: [] };
 
         var parent = fireWatcher.files[Path.dirname(file.path)];
+        if ( !parent ) {
+            console.error('Watch failed: Can not find path: %s', Path.dirname(file.path) );
+            return;
+        }
+
         parent.children.push( file.path );
 
         var pathWatcher = PathWatcher.watch( file.path, function ( event, path ) {
