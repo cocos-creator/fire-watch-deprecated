@@ -29,7 +29,7 @@
     },
     "dependencies": {
         "fire-fs": "",
-        "fire-path": "",
+        "fire-path": "0.1.7",
         "pathwatcher": "",
         "gulp": "",
         "event-stream": ""
