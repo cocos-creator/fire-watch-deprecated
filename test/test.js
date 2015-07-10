@@ -46,7 +46,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on("changed", function ( results ) {
+        watcher.on("change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -73,7 +73,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -100,7 +100,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -127,7 +127,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -163,7 +163,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -197,7 +197,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -226,7 +226,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -260,7 +260,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -286,7 +286,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -312,7 +312,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -339,7 +339,7 @@ describe('FireWatch Simple Case', function () {
                 done();
             } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
             tested = true;
 

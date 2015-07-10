@@ -1,12 +1,19 @@
 var Fs = require('fire-fs');
 var Path = require('fire-path');
-var PathWatcher = require('pathwatcher');
+var Chokidar = require('chokidar');
 var Gulp = require('gulp');
 var EventStream = require ('event-stream');
 var Util = require ('util');
 var Events = require ('events');
 
 var commandPriority = { delete: 0, new: 1, change: 2 };
+var ConvertChokidarCmds = {
+    unlink: 'delete',
+    unlinkDir: 'delete',
+    add: 'new',
+    addDir: 'new',
+    change: 'change',
+};
 var globalDiff = process.platform === 'win32';
 
 function _dbgPrintResults ( results ) {
@@ -52,28 +59,38 @@ function _watch ( fireWatcher ) {
         });
     }
 
-    return EventStream.through(function (file) {
+    return EventStream.map(function (file, callback) {
         fireWatcher.files[file.path] = { file: file, children: [] };
 
         var parent = fireWatcher.files[Path.dirname(file.path)];
         if ( !parent ) {
             console.error('Watch failed: Can not find path: %s', Path.dirname(file.path) );
-            return;
+            return callback();
         }
 
         parent.children.push( file.path );
 
-        var pathWatcher = PathWatcher.watch( file.path, function ( event, path ) {
+        var watcher = Chokidar.watch( file.path, {} ).on( 'all',function ( event, path ) {
             // console.log("DEBUG: %s, %s, %s", event, file.path, path);
 
+            event = ConvertChokidarCmds[event] || event;
+
             if ( event === "delete" ) {
-                pathWatcher.close();
+                watcher.close();
+                var removeAt = fireWatcher.watchers.indexOf(watcher);
+                if (removeAt !== -1) {
+                    fireWatcher.watchers.splice(removeAt, 1);
+                }
             }
             fireWatcher.changes[file.path] = { command: event, path: file.path, relatedPath: path };
             // TODO: _cooldown(fireWatcher);
         } );
 
-        this.push(file);
+        fireWatcher.watchers.push(watcher);
+
+        watcher.on('ready', function () {
+            callback(null, file)
+        });
     });
 }
 
@@ -98,7 +115,7 @@ function _flush ( fireWatcher ) {
     var results = _computeResults( fireWatcher.files, sortedChanges );
 
     //
-    fireWatcher.emit( 'changed', results );
+    fireWatcher.emit( 'change', results );
 
 }
 
@@ -247,6 +264,7 @@ function FireWatch () {
     this.files = {};
     this.changes = {};
     this.timer = null;
+    this.watchers = [];
 }
 
 Util.inherits( FireWatch, Events.EventEmitter );
@@ -254,7 +272,12 @@ Util.inherits( FireWatch, Events.EventEmitter );
 FireWatch.prototype.stop = function ( cb ) {
     //
     setTimeout( function () {
-        PathWatcher.closeAllWatchers();
+        for (var i = 0; i < this.watchers.length; i++) {
+            var watcher = this.watchers[i];
+            watcher.close();
+        }
+        this.watchers.length = 0;
+
         clearTimeout(this.timer);
 
         _flush(this);
