@@ -30,7 +30,7 @@
     "dependencies": {
         "fire-fs": "",
         "fire-path": "0.1.7",
-        "pathwatcher": "fireball-x/node-pathwatcher#fire-0.3.0",
+        "pathwatcher": "4.4.3",
         "gulp": "",
         "event-stream": ""
     }

@@ -3,10 +3,10 @@ var Fs = require('fire-fs');
 var Path = require('fire-path');
 
 function reset () {
-    Fs.rimrafSync("./test/foobar/");
+    Fs.removeSync("./test/foobar/");
     Fs.copySync("./test/test-data/", "./test/foobar");
 
-    Fs.rimrafSync("./test/foobar-trash/");
+    Fs.removeSync("./test/foobar-trash/");
     Fs.mkdirSync("./test/foobar-trash/");
 }
 
@@ -81,8 +81,8 @@ describe('FireWatch Simple Case', function () {
         this.timeout(10000);
 
         var watcher = FireWatch.start( root, function () {
-            Fs.rimrafSync(Path.join(root, "foo/foobar.js"));
-            Fs.rimrafSync(Path.join(root, "foo/foo-01/foobar.js"));
+            Fs.removeSync(Path.join(root, "foo/foobar.js"));
+            Fs.removeSync(Path.join(root, "foo/foo-01/foobar.js"));
 
             watcher.stop( function () { done(); } );
         });
@@ -103,8 +103,8 @@ describe('FireWatch Simple Case', function () {
         this.timeout(10000);
 
         var watcher = FireWatch.start( root, function () {
-            Fs.rimrafSync(Path.join(root, "foo/foo-01"));
-            Fs.rimrafSync(Path.join(root, "bar"));
+            Fs.removeSync(Path.join(root, "foo/foo-01"));
+            Fs.removeSync(Path.join(root, "bar"));
 
             watcher.stop( function () { done(); } );
         });
@@ -237,7 +237,7 @@ describe('FireWatch Simple Case', function () {
         this.timeout(10000);
 
         var watcher = FireWatch.start( root, function () {
-            Fs.rimrafSync( Path.join(root, "foobar.js") );
+            Fs.removeSync( Path.join(root, "foobar.js") );
             Fs.copySync(Path.join(root, "foobar.js.meta"), Path.join(root, "foobar.js"));
 
             watcher.stop( function () { done(); } );
@@ -258,8 +258,8 @@ describe('FireWatch Simple Case', function () {
         this.timeout(10000);
 
         var watcher = FireWatch.start( root, function () {
-            Fs.rimrafSync( Path.join(root, "foobar.js") );
-            Fs.rimrafSync( Path.join(root, "foobar.js.meta") );
+            Fs.removeSync( Path.join(root, "foobar.js") );
+            Fs.removeSync( Path.join(root, "foobar.js.meta") );
 
             watcher.stop( function () { done(); } );
         });
@@ -280,8 +280,8 @@ describe('FireWatch Simple Case', function () {
         this.timeout(10000);
 
         var watcher = FireWatch.start( root, function () {
-            Fs.rimrafSync( Path.join(root, "foo-bar") );
-            Fs.rimrafSync( Path.join(root, "foo-bar.meta") );
+            Fs.removeSync( Path.join(root, "foo-bar") );
+            Fs.removeSync( Path.join(root, "foo-bar.meta") );
 
             watcher.stop( function () { done(); } );
         });
@@ -309,7 +309,7 @@ describe('FireWatch Compound Case', function () {
 
         var watcher = FireWatch.start( root, function () {
             Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
-            Fs.rimrafSync(Path.join(root, "foo/foobar.js"));
+            Fs.removeSync(Path.join(root, "foo/foobar.js"));
 
             Fs.writeFileSync(Path.join(root,"foo/foo-02/foobar.js"), "Hello World!");
             Fs.writeFileSync(Path.join(root,"bar/bar-01/foobar-new.js"), "Hello World!");
@@ -317,8 +317,8 @@ describe('FireWatch Compound Case', function () {
             Fs.renameSync( Path.join(root, "foo/foo-03/foobar.js"),
                            Path.join(root, "bar/bar-03/foobar-rename.js") );
 
-            Fs.rimrafSync(Path.join(root, "foo/foo-01/foobar.js"));
-            Fs.rimrafSync(Path.join(root, "bar/bar-03/foobar-rename.js"));
+            Fs.removeSync(Path.join(root, "foo/foo-01/foobar.js"));
+            Fs.removeSync(Path.join(root, "bar/bar-03/foobar-rename.js"));
 
             watcher.stop( function () { done(); } );
         });
@@ -342,8 +342,8 @@ describe('FireWatch Compound Case', function () {
         this.timeout(10000);
 
         var watcher = FireWatch.start( root, function () {
-            Fs.rimrafSync(Path.join(root, "foo/foo-01"));
-            Fs.rimrafSync(Path.join(root, "bar"));
+            Fs.removeSync(Path.join(root, "foo/foo-01"));
+            Fs.removeSync(Path.join(root, "bar"));
 
             Fs.renameSync(Path.join(root, "foo"), Path.join(root, "bar-new") );
 
