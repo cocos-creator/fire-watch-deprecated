@@ -35,15 +35,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for new file', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start(root, function () {
             Fs.writeFileSync(Path.join(root, "foo/foo-01/foobar-new.js"), "Hello World!");
             Fs.writeFileSync(Path.join(root, "foo/foobar-new.js"), "Hello World!");
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on("changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "new", path: "foo/foo-01/foobar-new.js", isDirectory: false },
@@ -57,15 +62,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for new folder', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.mkdirSync(Path.join(root, "foo/foo-01-new"));
             Fs.mkdirSync(Path.join(root, "foo-new"));
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "new", path: "foo-new", isDirectory: true },
@@ -79,15 +89,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete file', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync(Path.join(root, "foo/foobar.js"));
             Fs.removeSync(Path.join(root, "foo/foo-01/foobar.js"));
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foo/foo-01/foobar.js", isDirectory: false },
@@ -101,15 +116,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete folder', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync(Path.join(root, "foo/foo-01"));
             Fs.removeSync(Path.join(root, "bar"));
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "bar", isDirectory: true },
@@ -123,6 +143,7 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for rename file', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.renameSync( Path.join(root, "foo/foobar.js"),
@@ -137,10 +158,14 @@ describe('FireWatch Simple Case', function () {
             Fs.renameSync( Path.join(root, "foo/foo-03/foobar.js"),
                            Path.join(root, "bar/bar-02/foobar-rename.js") );
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foo/foo-01/foobar.js", isDirectory: false },
@@ -159,6 +184,7 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for rename folder', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.renameSync( Path.join(root, "foo/foo-01"),
@@ -166,10 +192,14 @@ describe('FireWatch Simple Case', function () {
             Fs.renameSync( Path.join(root, "foo/foo-02"),
                            Path.join(root, "bar/bar-04/bar-02") );
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foo/foo-01", isDirectory: true },
@@ -184,16 +214,21 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for editing file', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
             Fs.writeFileSync(Path.join(root,"foo/foo-02/foobar.js"), "Hello World!");
             Fs.writeFileSync(Path.join(root,"bar/bar-01/foobar-new.js"), "Hello World!");
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "new", path: "bar/bar-01/foobar-new.js", isDirectory: false },
@@ -208,6 +243,7 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for move file out side root', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             var root2 = Fs.realpathSync("./test/foobar-trash/");
@@ -219,10 +255,14 @@ describe('FireWatch Simple Case', function () {
             Fs.renameSync( Path.join(root2, "bar-foobar.js"),
                            Path.join(root, "bar/foobar.js") );
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foo/foobar.js", isDirectory: false },
@@ -235,15 +275,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete and copy into the same file', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync( Path.join(root, "foobar.js") );
             Fs.copySync(Path.join(root, "foobar.js.meta"), Path.join(root, "foobar.js"));
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "change", path: "foobar.js", isDirectory: false },
@@ -256,15 +301,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete file and meta', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync( Path.join(root, "foobar.js") );
             Fs.removeSync( Path.join(root, "foobar.js.meta") );
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foobar.js", isDirectory: false },
@@ -278,15 +328,20 @@ describe('FireWatch Simple Case', function () {
 
     it('should work for delete folder and meta', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync( Path.join(root, "foo-bar") );
             Fs.removeSync( Path.join(root, "foo-bar.meta") );
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
         watcher.on( "changed", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foo-bar", isDirectory: true },
@@ -306,6 +361,7 @@ describe('FireWatch Compound Case', function () {
 
     it('should work for rename, new, delete, editing files', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
@@ -320,10 +376,14 @@ describe('FireWatch Compound Case', function () {
             Fs.removeSync(Path.join(root, "foo/foo-01/foobar.js"));
             Fs.removeSync(Path.join(root, "bar/bar-03/foobar-rename.js"));
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "foo/foo-01/foobar.js", isDirectory: false },
@@ -340,6 +400,7 @@ describe('FireWatch Compound Case', function () {
 
     it('should work for rename, new, delete folders', function ( done ) {
         this.timeout(10000);
+        var tested = false;
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync(Path.join(root, "foo/foo-01"));
@@ -350,10 +411,14 @@ describe('FireWatch Compound Case', function () {
             Fs.mkdirSync(Path.join(root, "foo-new"));
             Fs.mkdirSync(Path.join(root, "foo-new/foo-01"));
 
-            watcher.stop( function () { done(); } );
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
         });
-        watcher.on( "changed", function ( results ) {
+        watcher.on( "change", function ( results ) {
             printResults(results);
+            tested = true;
 
             var expectResults = [
                 { command: "delete", path: "bar", isDirectory: true },
