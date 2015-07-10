@@ -381,7 +381,7 @@ describe('FireWatch Compound Case', function () {
                 done();
             } );
         });
-        watcher.on( "change", function ( results ) {
+        watcher.on( "changed", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -416,7 +416,7 @@ describe('FireWatch Compound Case', function () {
                 done();
             } );
         });
-        watcher.on( "change", function ( results ) {
+        watcher.on( "changed", function ( results ) {
             printResults(results);
             tested = true;
 
@@ -430,5 +430,43 @@ describe('FireWatch Compound Case', function () {
 
             results.should.eql(expectResults);
         });
+    });
+});
+
+describe('Benchmark', function () {
+    it('should print benchmark', function ( done ) {
+        this.timeout(10000);
+        reset();
+        console.time('start watching');
+
+        var watcher = FireWatch.start( root, function () {
+            console.timeEnd('start watching');
+
+
+            Fs.writeFileSync(Path.join(root,"foo/foobar.js"), "Hello World!");
+
+            console.time('detect changes');
+
+            function checkChanges () {
+                if (Object.keys(watcher.changes).length > 0) {
+                    console.timeEnd('detect changes');
+
+                    console.time('stop watching');
+                    watcher.stop( function () {
+
+                        console.timeEnd('stop watching');
+                        done();
+
+                    } );
+                }
+                else {
+                    setImmediate(checkChanges);
+                }
+            }
+            setImmediate(checkChanges);
+        });
+        //watcher.on( "changed", function (results) {
+        //    printResults(results);
+        //});
     });
 });
