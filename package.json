@@ -28,9 +28,9 @@
         "should": ""
     },
     "dependencies": {
+        "chokidar": "1.0.3",
         "fire-fs": "",
         "fire-path": "0.1.7",
-        "pathwatcher": "4.4.3",
         "gulp": "",
         "event-stream": ""
     }
