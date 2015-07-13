@@ -1,7 +1,7 @@
 {
     "name": "fire-watch",
     "description": "node's fs module with some helpful additions.",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "keywords": [
         "fs",
         "file",
@@ -28,10 +28,8 @@
         "should": ""
     },
     "dependencies": {
-        "chokidar": "1.0.3",
-        "fire-fs": "",
+        "fire-fs": "0.2.1",
         "fire-path": "0.1.7",
-        "gulp": "",
-        "event-stream": ""
+        "globby": "2.0.0"
     }
 }

@@ -1,24 +1,28 @@
 var Fs = require('fire-fs');
 var Path = require('fire-path');
-var Chokidar = require('chokidar');
-var Gulp = require('gulp');
-var EventStream = require ('event-stream');
 var Util = require ('util');
 var Events = require ('events');
+var Globby = require ('globby');
+
+// DISABLE
+// var Chokidar = require('chokidar');
+// var Gulp = require('gulp');
+// var EventStream = require ('event-stream');
+// var ConvertChokidarCmds = {
+//     unlink: 'delete',
+//     unlinkDir: 'delete',
+//     add: 'new',
+//     addDir: 'new',
+//     change: 'change',
+// };
+// var globalDiff = process.platform === 'win32';
 
 var commandPriority = { delete: 0, new: 1, change: 2 };
-var ConvertChokidarCmds = {
-    unlink: 'delete',
-    unlinkDir: 'delete',
-    add: 'new',
-    addDir: 'new',
-    change: 'change',
-};
-var globalDiff = process.platform === 'win32';
+var globalDiff = true;
 
 function _dbgPrintResults ( results ) {
     for ( var p in results ) {
-        console.log( "%s: %s", results[p].command, results[p].path );
+        console.log( '%s: %s', results[p].command, results[p].path );
     }
 }
 
@@ -26,7 +30,7 @@ function _addResult ( results, command, path, isDirectory ) {
     var result = results[path];
     if ( result ) {
         if ( result.isDirectory !== isDirectory ) {
-            throw new Error("We not support file and directory share the same path " + path );
+            throw new Error('We not support file and directory share the same path ' + path );
         }
 
         if ( commandPriority[result.command] > commandPriority[command] ) {
@@ -43,63 +47,50 @@ function _addResult ( results, command, path, isDirectory ) {
     };
 }
 
-function _watch ( fireWatcher ) {
-    if ( globalDiff ) {
-        return EventStream.through(function (file) {
-            fireWatcher.files[file.path] = { file: file, children: [] };
+// DISABLE
+// function _watch ( fireWatcher ) {
+//     return EventStream.map(function (file, callback) {
+//         fireWatcher.files[file.path] = { file: file, children: [] };
 
-            var parent = fireWatcher.files[Path.dirname(file.path)];
-            parent.children.push( file.path );
+//         var parent = fireWatcher.files[Path.dirname(file.path)];
+//         if ( !parent ) {
+//             console.error('Watch failed: Can not find path: %s', Path.dirname(file.path) );
+//             return callback();
+//         }
 
-            if ( file.stat.isDirectory() ) {
-                fireWatcher.changes[file.path] = { command: "change", path: file.path };
-            }
+//         parent.children.push( file.path );
 
-            this.push(file);
-        });
-    }
+//         var watcher = Chokidar.watch( file.path, {} ).on( 'all',function ( event, path ) {
+//             // console.log('DEBUG: %s, %s, %s', event, file.path, path);
 
-    return EventStream.map(function (file, callback) {
-        fireWatcher.files[file.path] = { file: file, children: [] };
+//             event = ConvertChokidarCmds[event] || event;
 
-        var parent = fireWatcher.files[Path.dirname(file.path)];
-        if ( !parent ) {
-            console.error('Watch failed: Can not find path: %s', Path.dirname(file.path) );
-            return callback();
-        }
+//             if ( event === 'delete' ) {
+//                 watcher.close();
+//                 var removeAt = fireWatcher.watchers.indexOf(watcher);
+//                 if (removeAt !== -1) {
+//                     fireWatcher.watchers.splice(removeAt, 1);
+//                 }
+//             }
+//             fireWatcher.changes[file.path] = { command: event, path: file.path, relatedPath: path };
+//             // TODO: _cooldown(fireWatcher);
+//         } );
 
-        parent.children.push( file.path );
+//         fireWatcher.watchers.push(watcher);
 
-        var watcher = Chokidar.watch( file.path, {} ).on( 'all',function ( event, path ) {
-            // console.log("DEBUG: %s, %s, %s", event, file.path, path);
+//         watcher.on('ready', function () {
+//             callback(null, file);
+//         });
+//     });
+// }
 
-            event = ConvertChokidarCmds[event] || event;
-
-            if ( event === "delete" ) {
-                watcher.close();
-                var removeAt = fireWatcher.watchers.indexOf(watcher);
-                if (removeAt !== -1) {
-                    fireWatcher.watchers.splice(removeAt, 1);
-                }
-            }
-            fireWatcher.changes[file.path] = { command: event, path: file.path, relatedPath: path };
-            // TODO: _cooldown(fireWatcher);
-        } );
-
-        fireWatcher.watchers.push(watcher);
-
-        watcher.on('ready', function () {
-            callback(null, file)
-        });
-    });
-}
-
-function _cooldown ( fireWatcher ) {
-    clearTimeout(fireWatcher.timer);
-    fireWatcher.timer = setTimeout(function () {
-        _flush(fireWatcher);
-    }, 500);
-}
+// DISABLE
+// function _cooldown ( fireWatcher ) {
+//     clearTimeout(fireWatcher.timer);
+//     fireWatcher.timer = setTimeout(function () {
+//         _flush(fireWatcher);
+//     }, 500);
+// }
 
 function _flush ( fireWatcher ) {
     var sortedChanges = [];
@@ -115,8 +106,7 @@ function _flush ( fireWatcher ) {
     var results = _computeResults( fireWatcher.files, sortedChanges );
 
     //
-    fireWatcher.emit( 'change', results );
-
+    fireWatcher.emit( 'changed', results );
 }
 
 function _computeResults ( files, changes ) {
@@ -126,7 +116,7 @@ function _computeResults ( files, changes ) {
 
         return Fs.readdirSync(path)
         .filter( function ( name ) {
-            return name[0] !== ".";
+            return name[0] !== '.';
         })
         .map( function ( name ) {
             return Path.join( path, name );
@@ -140,22 +130,21 @@ function _computeResults ( files, changes ) {
     var results = {};
 
     for ( var i = 0; i < changes.length; ++i ) {
-        var info = changes[i];
-        var fileInfo = files[info.path];
+        var changeInfo = changes[i];
+        var fileInfo = files[changeInfo.path];
 
         if ( !fileInfo ) {
-            _addResult( results, 'new', info.path, Fs.statSync(info.path).isDirectory() );
+            _addResult( results, 'new', changeInfo.path, Fs.statSync(changeInfo.path).isDirectory() );
             continue;
         }
 
         // get file
-        var file = fileInfo.file;
         var path, stat, stat2;
 
         // if changed file is folder
-        if ( file.stat.isDirectory() ) {
+        if ( fileInfo.stat.isDirectory() ) {
             var oldFiles = fileInfo.children.slice();
-            var newFiles = getFiles( file.path );
+            var newFiles = getFiles( fileInfo.path );
             var sameFiles = [];
             var oldLen = oldFiles.length;
             var newLen = newFiles.length;
@@ -188,13 +177,13 @@ function _computeResults ( files, changes ) {
 
             for ( j = 0; j < oldLen; ++j ) {
                 path = oldFiles[j];
-                stat = files[path].file.stat;
+                stat = files[path].stat;
                 _addResult( results, 'delete', path, stat.isDirectory() );
             }
 
             for ( j = 0; j < sameFiles.length; ++j ) {
                 path = sameFiles[j];
-                stat = files[path].file.stat;
+                stat = files[path].stat;
                 stat2 = Fs.statSync(path);
                 if ( stat.isFile() && stat.mtime.getTime() !== stat2.mtime.getTime() ) {
                     _addResult( results, 'change', path, false );
@@ -202,27 +191,28 @@ function _computeResults ( files, changes ) {
             }
         }
         else {
-            if ( info.command === "change" ) {
-                _addResult( results, 'change', info.path, false );
+            if ( changeInfo.command === 'change' ) {
+                _addResult( results, 'change', changeInfo.path, false );
             }
-            else if ( info.command === "rename" ) {
-                if ( !Fs.existsSync(info.path) ) {
-                    _addResult( results, 'delete', info.path, false );
-                }
-                else {
-                    _addResult( results, 'change', info.path, false );
-                }
+            // DISABLE
+            // else if ( changeInfo.command === 'rename' ) {
+            //     if ( !Fs.existsSync(changeInfo.path) ) {
+            //         _addResult( results, 'delete', changeInfo.path, false );
+            //     }
+            //     else {
+            //         _addResult( results, 'change', changeInfo.path, false );
+            //     }
 
-                if ( Path.contains( file.base, info.relatedPath ) ) {
-                    _addResult( results, 'new', info.relatedPath, false );
-                }
-            }
-            else if ( info.command === "delete" ) {
-                if ( !Fs.existsSync(info.path) ) {
-                    _addResult( results, 'delete', info.path, false );
+            //     if ( Path.contains( file.base, changeInfo.relatedPath ) ) {
+            //         _addResult( results, 'new', changeInfo.relatedPath, false );
+            //     }
+            // }
+            else if ( changeInfo.command === 'delete' ) {
+                if ( !Fs.existsSync(changeInfo.path) ) {
+                    _addResult( results, 'delete', changeInfo.path, false );
                 }
                 else {
-                    _addResult( results, 'change', info.path, false );
+                    _addResult( results, 'change', changeInfo.path, false );
                 }
             }
         }
@@ -290,16 +280,43 @@ FireWatch.prototype.stop = function ( cb ) {
 FireWatch.start = function ( root, cb ) {
     root = Path.normalize(root);
     var fireWatcher = new FireWatch();
-    fireWatcher.files[Path.dirname(root)] = { file: null, children: [] };
+    fireWatcher.files[Path.dirname(root)] = {
+        path: Path.dirname(root),
+        stat: null,
+        children: []
+    };
 
-    Gulp.src( [root, Path.join(root,"**/*")], { cwd: root, base: root, read: false } )
-        .pipe ( _watch(fireWatcher) ).on( "end", function () {
-            if ( cb ) cb ();
+    // DISABLE
+    // if ( !globalDiff ) {
+    //     Gulp.src( [root, Path.join(root,'**/*')], { cwd: root, base: root, read: false } )
+    //         .pipe ( _watch(fireWatcher) ).on( 'end', function () {
+    //             if ( cb ) cb ();
 
-            // DEBUG
-            // console.log(PathWatcher.getWatchedPaths());
-        })
-        ;
+    //             // DEBUG
+    //             // console.log(PathWatcher.getWatchedPaths());
+    //         })
+    //         ;
+    // }
+
+    Globby( [root, Path.join(root,'**/*')], function ( err, paths ) {
+        paths.forEach( function ( path ) {
+            var stat = Fs.statSync(path);
+            fireWatcher.files[path] = {
+                path: path,
+                stat: stat,
+                children: [],
+            };
+
+            var parent = fireWatcher.files[Path.dirname(path)];
+            parent.children.push( path );
+
+            if ( stat.isDirectory() ) {
+                fireWatcher.changes[path] = { command: 'change', path: path };
+            }
+        });
+
+        if ( cb ) cb ();
+    });
 
     return fireWatcher;
 };
