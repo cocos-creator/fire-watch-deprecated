@@ -27,6 +27,7 @@ function mapResults ( results ) {
 
 reset();
 var root = Fs.realpathSync('./test/foobar/');
+console.log(root);
 
 describe('FireWatch Simple Case', function () {
     beforeEach(function () {
@@ -279,7 +280,9 @@ describe('FireWatch Simple Case', function () {
 
         var watcher = FireWatch.start( root, function () {
             Fs.removeSync( Path.join(root, 'foobar.js') );
-            Fs.copySync(Path.join(root, 'foobar.js.meta'), Path.join(root, 'foobar.js'));
+            Fs.copySync(Path.join(root, 'foobar.js.meta'), Path.join(root, 'foobar.js'), {
+                preserveTimestamps: false
+            });
 
             watcher.stop( function () {
                 tested.should.eql(true);
@@ -402,7 +405,7 @@ describe('FireWatch Compound Case', function () {
         this.timeout(10000);
         var tested = false;
 
-        var watcher = FireWatch.start( root, function () {
+        var watcher = FireWatch.start( root + '/', function () {
             Fs.removeSync(Path.join(root, 'foo/foo-01'));
             Fs.removeSync(Path.join(root, 'bar'));
 

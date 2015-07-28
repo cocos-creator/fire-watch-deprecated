@@ -300,7 +300,7 @@ FireWatch.start = function ( root, cb ) {
 
     Globby( [root, Path.join(root,'**/*')], function ( err, paths ) {
         paths.forEach( function ( path ) {
-            path = Path.normalize(path);
+            path = Path.normalize(path).replace(/\/$/, '');
             var stat = Fs.statSync(path);
             fireWatcher.files[path] = {
                 path: path,
