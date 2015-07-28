@@ -27,7 +27,6 @@ function mapResults ( results ) {
 
 reset();
 var root = Fs.realpathSync('./test/foobar/');
-console.log(root);
 
 describe('FireWatch Simple Case', function () {
     beforeEach(function () {
