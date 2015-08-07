@@ -33,6 +33,21 @@ describe('FireWatch Simple Case', function () {
         reset();
     });
 
+    it('should work for the first argument which ends with slash', function ( done ) {
+        this.timeout(10000);
+        var tested = false;
+        var watcher = FireWatch.start(root + '/', function () {
+            watcher.stop( function () {
+                tested.should.eql(true);
+                done();
+            } );
+        });
+        watcher.on('changed', function ( results ) {
+            printResults(results);
+            tested = true;
+        });
+    });
+
     it('should work for new file', function ( done ) {
         this.timeout(10000);
         var tested = false;
@@ -354,6 +369,7 @@ describe('FireWatch Simple Case', function () {
             results.should.eql(expectResults);
         });
     });
+
 });
 
 describe('FireWatch Compound Case', function () {
@@ -404,7 +420,7 @@ describe('FireWatch Compound Case', function () {
         this.timeout(10000);
         var tested = false;
 
-        var watcher = FireWatch.start( root + '/', function () {
+        var watcher = FireWatch.start( root , function () {
             Fs.removeSync(Path.join(root, 'foo/foo-01'));
             Fs.removeSync(Path.join(root, 'bar'));
 
