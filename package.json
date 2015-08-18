@@ -1,7 +1,7 @@
 {
     "name": "fire-watch",
     "description": "node's fs module with some helpful additions.",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "keywords": [
         "fs",
         "file",
