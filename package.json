@@ -1,35 +1,35 @@
 {
-    "name": "fire-watch",
-    "description": "node's fs module with some helpful additions.",
-    "version": "0.2.0",
-    "keywords": [
-        "fs",
-        "file",
-        "filesystem",
-        "watcher"
-    ],
-    "scripts": {
-        "test": "mocha --require should"
-    },
-    "homepage": "https://github.com/fireball-x/fire-watch",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/fireball-x/fire-watch.git"
-    },
-    "bugs": {
-        "url": "http://github.com/fireball-x/fire-watch/issues"
-    },
-    "licenses": [{
-        "type": "MIT",
-        "url": "http://github.com/fireball-x/fire-watch/raw/master/LICENSE"
-    }],
-    "devDependencies": {
-        "mocha": "",
-        "should": ""
-    },
-    "dependencies": {
-        "fire-fs": "^0.2.1",
-        "fire-path": "^0.1.8",
-        "globby": "^2.0.0"
-    }
+  "name": "fire-watch",
+  "description": "node's fs module with some helpful additions.",
+  "version": "0.2.0",
+  "keywords": [
+    "fs",
+    "file",
+    "filesystem",
+    "watcher"
+  ],
+  "scripts": {
+    "test": "mocha"
+  },
+  "homepage": "https://github.com/fireball-x/fire-watch",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fireball-x/fire-watch.git"
+  },
+  "bugs": {
+    "url": "http://github.com/fireball-x/fire-watch/issues"
+  },
+  "licenses": [{
+    "type": "MIT",
+    "url": "http://github.com/fireball-x/fire-watch/raw/master/LICENSE"
+  }],
+  "dependencies": {
+    "fire-fs": "^0.2.1",
+    "fire-path": "^0.1.8",
+    "globby": "^2.0.0"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+  }
 }
