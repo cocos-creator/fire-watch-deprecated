@@ -43,16 +43,11 @@ function _flush ( watcher ) {
   });
 
   //
-  var unknowns = watcher._unknowns;
-  watcher._unknowns = [];
-
-  //
   var results = _computeResults( watcher._fileInfos, sortedChanges );
   watcher._fileInfos = {};
 
   //
   watcher.emit( 'changed', results );
-  watcher.emit( 'unknown-changed', unknowns );
 }
 
 function _getFiles ( path ) {
@@ -204,7 +199,6 @@ function FireWatch () {
 
   this._fileInfos = {};
   this._changes = [];
-  this._unknowns = [];
 }
 Util.inherits( FireWatch, EventEmitter );
 
@@ -230,6 +224,8 @@ FireWatch.start = function ( root, cb ) {
   };
 
   Globby([root, Path.join(root,'**/*')], function ( err, paths ) {
+    var unknowns = [];
+
     paths.forEach(function ( path ) {
       path = Path.normalize(path);
 
@@ -239,7 +235,7 @@ FireWatch.start = function ( root, cb ) {
       try {
         stat = Fs.statSync(path);
       } catch (err) {
-        watcher._unknowns.push(path);
+        unknowns.push(path);
         return;
       }
 
@@ -259,6 +255,10 @@ FireWatch.start = function ( root, cb ) {
         });
       }
     });
+
+    if ( unknowns.length ) {
+      watcher.emit( 'unknown-changed', unknowns );
+    }
 
     if ( cb ) {
       cb ();
