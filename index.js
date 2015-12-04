@@ -212,18 +212,29 @@ FireWatch.prototype.stop = function ( cb ) {
   }.bind(this), 100 );
 };
 
-FireWatch.start = function ( root, cb ) {
-  root = Path.normalize(root).replace(/\/$/, '');
-  var rootParent = Path.dirname(root);
+FireWatch.start = function (roots, cb ) {
+  if ( !Array.isArray(roots) ) {
+    roots = [roots];
+  }
+
+  roots = roots.map(function (root) {
+    return Path.normalize(root).replace(/\/$/, '');
+  });
+
   var watcher = new FireWatch();
+  var src = [];
+  roots.forEach(function (root) {
+    var rootParent = Path.dirname(root);
+    watcher._fileInfos[rootParent] = {
+      path: rootParent,
+      stat: null,
+      children: []
+    };
+    src.push(root);
+    src.push(Path.join(root,'**/*'));
+  });
 
-  watcher._fileInfos[rootParent] = {
-    path: rootParent,
-    stat: null,
-    children: []
-  };
-
-  Globby([root, Path.join(root,'**/*')], function ( err, paths ) {
+  Globby(src, function ( err, paths ) {
     var unknowns = [];
 
     paths.forEach(function ( path ) {

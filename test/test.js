@@ -483,6 +483,50 @@ describe('FireWatch Compound Case', function () {
   });
 });
 
+describe('FireWatch Multi Source', function () {
+  beforeEach(function () {
+    reset();
+  });
+
+  it('should work multiple source', function ( done ) {
+    this.timeout(10000);
+    var tested = false;
+
+    var watcher = FireWatch.start([
+      Path.join(root, 'foo'),
+      Path.join(root, 'bar')
+    ], function () {
+      Fs.renameSync(
+        Path.join(root, 'foo/foo-01/foobar.js'),
+        Path.join(root, 'bar/bar-01/foobar-rename.js')
+      );
+
+      // this one will not be detected
+      Fs.renameSync(
+        Path.join(root, 'foo-bar/foo-01.js'),
+        Path.join(root, 'foo-bar/foo-04.js')
+      );
+
+      watcher.stop( function () {
+        expect(tested).to.eql(true);
+        done();
+      });
+    });
+    watcher.on( 'changed', function ( results ) {
+      printResults(results);
+      tested = true;
+
+      var expectResults = [
+        { command: 'delete', path: 'foo/foo-01/foobar.js', isDirectory: false },
+        { command: 'new', path: 'bar/bar-01/foobar-rename.js', isDirectory: false },
+      ];
+      expectResults = mapResults(expectResults);
+
+      expect(results).to.eql(expectResults);
+    });
+  });
+});
+
 describe('FireWatch Error Handling', function () {
   beforeEach(function () {
     reset();
